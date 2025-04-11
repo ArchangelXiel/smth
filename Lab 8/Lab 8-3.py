@@ -10,20 +10,21 @@ drawing = False
 last_pos = None
 color = (0, 0, 0)
 brush_size = 5
-mode = 'brush'  # modes: brush, rectangle, circle, eraser
+mode = 'brush'  
 
 canvas = pygame.Surface(screen.get_size())
 canvas.fill((255, 255, 255))
 
 start_shape = None
 
-# Color palette
+# Colors
 colors = {
-    pygame.K_1: (0, 0, 0),
-    pygame.K_2: (255, 0, 0),
-    pygame.K_3: (0, 255, 0),
-    pygame.K_4: (0, 0, 255),
-    pygame.K_5: (255, 255, 0),
+    pygame.K_1: (0, 0, 0), #black
+    pygame.K_2: (255, 0, 0), #red
+    pygame.K_3: (0, 255, 0), #green
+    pygame.K_4: (0, 0, 255), #blue
+    pygame.K_5: (255, 255, 0), #yellow
+    pygame.K_6: (255, 0, 255), #purple
 }
 
 running = True
