@@ -36,17 +36,25 @@ def insert_from_csv(file_path):
 
 def insert_many_users():
     n = int(input("How many users to insert? "))
-    users = []
+    incorrect = []
+
     for _ in range(n):
         name = input("Enter name: ")
         phone = input("Enter phone: ")
-        users.append({"name": name, "phone": phone})
-    cur.execute("CALL insert_many_users(%s)", (json.dumps(users),))
-    cur.execute("FETCH ALL IN \"<unnamed portal 1>\";")
-    cur.execute("SELECT * FROM insert_many_users(%s)", (json.dumps(users),))
-    result = cur.fetchone()
-    print("Incorrect data:", result[0])
+
+        if not phone.startswith('+7') or not phone[1:].isdigit() or len(phone) != 12:
+            incorrect.append((name, phone))
+        else:
+            cur.execute("CALL insert_or_update_user(%s, %s)", (name, phone))
+
     conn.commit()
+
+    if incorrect:
+        print("Incorrect data:")
+        for name, phone in incorrect:
+            print(f"{name}: {phone}")
+    else:
+        print("All users inserted successfully.")
 
 def update_data():
     name = input("Enter name to update: ")
@@ -54,12 +62,25 @@ def update_data():
     cur.execute("CALL insert_or_update_user(%s, %s)", (name, phone))
     conn.commit()
 
-def search_pattern():
-    pattern = input("Enter pattern to search: ")
-    cur.execute("SELECT * FROM search_phonebook(%s)", (pattern,))
+#Search
+def query_data():
+    filter_by = input("Choose an option: \n1. all (show all entries)\n2. pattern (search in both name and phone)\n")
+    if filter_by == "1" or filter_by.lower() == "all":
+        cur.execute("SELECT * FROM phonebook")
+    elif filter_by == "2" or filter_by.lower() == "pattern":
+        pattern = input("Enter pattern to search: ")
+        cur.execute("SELECT * FROM phonebook WHERE name ILIKE %s OR phone ILIKE %s", 
+                    ('%' + pattern + '%', '%' + pattern + '%'))
+    else:
+        print("Invalid option. Please choose '1', 'all', '2', or 'pattern'.")
+        return
     rows = cur.fetchall()
-    for row in rows:
-        print(row)
+    if not rows:
+        print("No results found.")
+    else:
+        for row in rows:
+            print(row)
+
 
 def get_paginated():
     limit = int(input("Enter limit: "))
@@ -68,6 +89,7 @@ def get_paginated():
     rows = cur.fetchall()
     for row in rows:
         print(row)
+
 
 def delete_data():
     val = input("Enter name or phone to delete: ")
@@ -81,7 +103,7 @@ def menu():
         print("2. Insert from CSV")
         print("3. Insert many users")
         print("4. Update user")
-        print("5. Search by pattern")
+        print("5. Quaery data")
         print("6. Paginate data")
         print("7. Delete user")
         print("8. Exit")
@@ -96,7 +118,7 @@ def menu():
         elif choice == '4':
             update_data()
         elif choice == '5':
-            search_pattern()
+            query_data()
         elif choice == '6':
             get_paginated()
         elif choice == '7':
